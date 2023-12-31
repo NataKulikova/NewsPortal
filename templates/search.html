@@ -1,0 +1,73 @@
+<!--  наследуемся от шаблона default.html, который мы создавали для flatpages -->
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %}
+<!-- Подключаем новый файл с нашим тегом -->
+{% load custom_tags %}
+
+
+<!-- Название у нас будет Product -->
+{% block title %}
+Работаем для вас 24 на 7
+{% endblock title %}
+
+
+<!-- В контенте на странице мы выводим сам товар, идентификатор которого был передан в url -->
+{% block content %}
+
+
+   <h1>Все новости</h1>
+    <form action="" method="get" >
+        {{ filterset.form.non_field_errors }}
+
+        {{ filterset.form.title__icontains.errors }}
+        <label for="{{ filterset.form.title__icontains.id_for_label }}">Search</label>
+        <input
+            id="{{ filterset.form.title__icontains.id }}"
+            name="{{ filterset.form.title__icontains.name }}"
+            value="{{ filterset.form.title__icontains.value }}"
+            class="form-control"
+        >
+        <input type="submit" class="mt-3 btn-primary" value="Найти" />
+    </form>
+
+   <hr>
+   {% if search %}
+       <table>
+           <tr>
+               <td>Дата</td>
+               <td>Название</td>
+               <td>Описание</td>
+               <td>Рейтинг</td>
+           </tr>
+
+           <!-- Для каждого товара будете генерироваться новая строчка,
+           т.е. новый HTML код, который указан в теле цикла.
+           При этом сам цикл работает точно так же, как и в Python.
+           product — переменная цикла, т.е. наш товар полученный из списка -->
+           {% for i in search %}
+           <tr>
+               <!-- Не забываем, что переменные в шаблоне ничем не отличаются
+                от переменных в Python. Здесь также можно получать доступ к
+                полям объекта модели. Например, здесь мы выводим имя,
+                в следующем столбце описание, и т.д.  -->
+               <td>{{ i.dateCreation }}</td>
+               <td>{{ i.title|truncatewords:2|censor }}</td>
+               <td>{{ i.text|truncatechars:21|censor }}</td>
+               <td>{{ i.rating }}</td>
+           </tr>
+           {% endfor %}
+
+       </table>
+   {% else %}
+       <h2>Новостей нет!</h2>
+   {% endif %}
+
+
+
+
+
+{{ post_detail }}
+{% endblock content %}
+
+
