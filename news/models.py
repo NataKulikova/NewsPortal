@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.core.validators import MinValueValidator
 from django.urls import reverse
+from django.utils.translation import gettext as _
+from django.utils.translation import pgettext_lazy  # импортируем «ленивый» геттекст с подсказкой
 
 
 class Author(models.Model):
@@ -22,7 +24,7 @@ class Author(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=64, unique=True)
+    name = models.CharField(max_length=64, help_text=_('category name'), unique=True)
 
     def __str__(self):
         return self.name
@@ -54,8 +56,8 @@ class Post(models.Model):
     def __str__(self):
         return f'{self.title}: {self.text}'
 
-    # def get_absolute_url(self):  # new
-    #     return reverse('PostForm', args=[str(self.id)])
+    def get_absolute_url(self):  # new
+        return reverse('PostForm', args=[str(self.id)])
 
 # class PostCategory (models.Model):
 #     postThrough = models.ForeignKey(Post, on_delete=models.CASCADE)
@@ -89,3 +91,18 @@ class Subscription(models.Model):
         on_delete=models.CASCADE,
         related_name='subscriptions',
     )
+
+class School(models.Model):
+
+   name = models.CharField(max_length=64, unique=True)
+   address = models.CharField(max_length=120)
+
+
+class SClass(models.Model):
+   grade = models.IntegerField()
+   school = models.ForeignKey(School, on_delete=models.CASCADE)
+
+
+class Student(models.Model):
+   name = models.CharField(max_length=64)
+   sclass = models.ForeignKey(SClass, on_delete=models.CASCADE)

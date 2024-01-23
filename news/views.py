@@ -16,18 +16,42 @@ from django.http import HttpResponse
 from django.views import View
 from .tasks import hello, printer
 import logging
+from django.utils.translation import gettext as _
+from django.utils.translation import activate, get_supported_language_variant
+from django.utils import timezone
+from django.shortcuts import redirect
+
+import pytz  # импортируем стандартный модуль для работы с часовыми поясами
+
+
+from django.shortcuts import render
+from rest_framework import viewsets
+from rest_framework import permissions
+
+#from serializers import *
+#from models import *
+
 
 #берет название приложение как имя логера
 logger = logging.getLogger(__name__)
 
-#def index(request):
-    #logger.info()
-    #news = New.objects.all()
-    #return render(request, )
+class Index(View):
+   def get(self, request):
+       # . Translators: This message appears on the home page only
+       models = Post.objects.all()
 
-#def index(request):
-    #news = New.objects.all()
-    #return render(request, 'index.html', context = {'news': news} )
+       context = {
+           'models': models,
+           'current_time': timezone.localtime(timezone.now()),
+           'timezones': pytz.common_timezones  # добавляем в контекст все доступные часовые пояса
+       }
+
+       return HttpResponse(render(request, 'post.html', context))
+
+   #  по пост-запросу будем добавлять в сессию часовой пояс, который и будет обрабатываться написанным нами ранее middleware
+   def post(self, request):
+       request.session['django_timezone'] = request.POST['timezone']
+       return redirect('/')
 
 class PostView(ListView):
     # Указываем модель, объекты которой мы будем выводить
@@ -67,6 +91,15 @@ class PostView(ListView):
         context['filterset'] = self.filterset
         return context
    # Переопределяем функцию получения списка товаров
+
+class PostTrans(View):
+    def get(self, request):
+        greet = _('Работаем для вас 24 на 7') #msgid
+        context = {
+            'greet': greet
+        }
+
+        return HttpResponse(render(request, 'post.html', context))
 class PostCategoryView(DetailView):
     # Модель всё та же, но мы хотим получать информацию по отдельному товару
     model = Category
@@ -202,3 +235,18 @@ class IndexView(View):
         printer.delay(10)
         hello.delay()
         return HttpResponse('Hello!')
+
+
+# class SchoolViewset(viewsets.ModelViewSet):
+#    queryset = School.objects.all()
+#    serializer_class = SchoolSerializer
+#
+#
+# class SClassViewset(viewsets.ModelViewSet):
+#    queryset = SClass.objects.all()
+#    serializer_class = SClassSerializer
+#
+#
+# class StudentViewest(viewsets.ModelViewSet):
+#    queryset = Student.objects.all()
+#    serializer_class = StudentSerializer

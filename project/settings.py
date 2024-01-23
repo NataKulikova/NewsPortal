@@ -26,12 +26,22 @@ SECRET_KEY = 'django-insecure-yf^#)f71bxqst-q1num2948pcb^ukwjfi$z@zw11r7#aaqxd99
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale')
+]
+
 ALLOWED_HOSTS = []
 
+LANGUAGE_CODE = 'en'
+LANGUAGES = [
+    ('en', 'English'),
+    ('ru', 'Русский')
+]
 
 # Application definition
 
 INSTALLED_APPS = [
+    'modeltranslation',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,6 +57,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.yandex',
     'django_apscheduler',
+    'rest_framework',
 
 ]
 
@@ -55,12 +66,14 @@ SITE_ID = 1
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware'
+    'allauth.account.middleware.AccountMiddleware',
+    'news.middlewares.TimezoneMiddleware', # add that middleware!
 ]
 
 ROOT_URLCONF = 'project.urls'
@@ -123,7 +136,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
@@ -137,126 +149,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-LOGGING = {
-   'version': 1,
-   'disable_existing_loggers': False,
-    'formatters': {
-        'format_debug': {
-            'format': '{asctime} {levelname} {message}',
-            'style': '{',
-        },
 
-        'format_warning_mail': {
-            'format': '{asctime} {levelname} {message} {pathname} ',
-            'style': '{',
-        },
-
-        'format_general_security_info': {
-            'format': '{asctime} {levelname} {message} {module} ',
-            'style': '{',
-        },
-
-        'format_error_critical': {
-            'format': '{asctime} {levelname} {message} {pathname} {exc_info} ',
-            'style': '{',
-        },
-    },
-
-    'handlers': {
-        'console_debug': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
-            'class': 'logging.StreamHandler',
-            'formatter': 'format_debug',
-        },
-
-        'console_warning': {
-            'level': 'WARNING',
-            'filters': ['require_debug_true'],
-            'class': 'logging.StreamHandler',
-            'formatter': 'format_warning_mail',
-        },
-
-        'console_gen_sec_info': {
-            'level': 'INFO',
-            'filters': ['require_debug_false'],
-            'class': 'logging.FileHandler',
-            'formatter': 'format_general_security_info',
-            'filename': 'logs/general.log',
-        },
-
-        'console_error_critical': {
-            'level': 'ERROR',
-            'filters': ['require_debug_true'],
-            'class': 'logging.StreamHandler',
-            'formatter': 'format_error_critical',
-        },
-
-        'errors_file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'formatter': 'format_error_critical',
-            'filename': 'logs/errors.log',
-        },
-
-        'security_file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'formatter': 'format_general_security_info',
-            'filename': 'logs/security.log',
-        },
-
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler',
-            'formatter': 'format_warning_mail',
-        },
-    },
-
-    'filters': {
-        'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse'},
-        'require_debug_true': {'()': 'django.utils.log.RequireDebugTrue'},
-    },
-
-    'loggers': {
-        'django': {
-            'handlers': ['console_debug', 'console_warning', 'console_gen_sec_info', 'console_error_critical'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-
-        'django.request': {
-            'handlers': ['errors_file', 'mail_admins'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-
-        'django.server': {
-            'handlers': ['errors_file', 'mail_admins'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-
-        'django.template': {
-            'handlers': ['errors_file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-
-        'django.db.backends': {
-            'handlers': ['errors_file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-
-        'django.security': {
-            'handlers': ['security_file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-    }
-}
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -299,10 +192,10 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(BASE_DIR, 'cache_files'), # Указываем, куда будем сохранять кэшируемые файлы!
-        # Не забываем создать папку cache_files внутри папки с manage.py!
-    }
-}
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+#         'LOCATION': os.path.join(BASE_DIR, 'cache_files'), # Указываем, куда будем сохранять кэшируемые файлы!
+#         # Не забываем создать папку cache_files внутри папки с manage.py!
+#     }
+# }

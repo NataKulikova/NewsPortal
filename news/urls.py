@@ -1,10 +1,17 @@
 from django.urls import path
 # Импортируем созданное нами представление
 from .views import (PostView, PostCategoryView, CommentView, ArticleView, SearchView, create_post,
-                    PostUpdate, PostDelete, PostCreate, subscriptions, IndexView)
+                    PostUpdate, PostDelete, PostCreate, subscriptions, IndexView, Index)
 from django.views.decorators.cache import cache_page
 from django.contrib import admin
-
+from rest_framework import routers
+from django.urls import path, include
+# from news import views
+#
+# router = routers.DefaultRouter()
+# router.register(r'schools', views.SchoolViewset)
+# router.register(r'classes', views.SClassViewset)
+# router.register(r'students', views.StudentViewest)
 
 urlpatterns = [
    # path — означает путь.
@@ -26,5 +33,9 @@ urlpatterns = [
    path('create/', PostCreate.as_view(), name='post_create'),
    path('post/<int:pk>/', cache_page(60 * 1)(PostView.as_view()), name='post_detail'),
    path('subscriptions/', subscriptions, name='subscriptions'),
-   path('hello/', IndexView.as_view()),
+   path('hello/', Index.as_view()),
+   path('i18n/', include('django.conf.urls.i18n')),  # подключаем встроенные эндопинты для работы с локализацией
+   #path('admin/', admin.site.urls),
+   #path('', include('basic.urls')),
+
 ]
